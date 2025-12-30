@@ -8,12 +8,12 @@ const verifyAdmin = async (req, res, next) => {
         return res.status(401).json({ success: false, message: "Silakan login terlebih dahulu!" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.team.findUnique({ where: { id: decoded.id } });
+    const admin = await prisma.admin.findUnique({ where: { id: decoded.id } });
 
-    if (!user || user.role !== 'ADMIN') 
-      return res.status(403).json({ success: false, message: "Akses ditolak! Anda bukan admin.." });
+    if (!admin || decoded.role !== 'ADMIN') 
+      return res.status(403).json({ success: false, message: "Akses ditolak, khusus Admin!" });
     
-    req.user = user;
+    req.user = admin;
     next();
     
   } catch (error) {
