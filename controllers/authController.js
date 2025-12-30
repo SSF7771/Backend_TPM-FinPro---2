@@ -68,21 +68,34 @@ const userLogin = async (req, res, next) => {
     if (!teamName || !password) 
       return res.status(400).json({ success: false, message: "Nama tim dan password wajib diisi" });
     
+    let user = await prisma.team.findUnique({ where: { teamName } });
+    let role = 'USER';
 
-    const team = await prisma.team.findUnique({ where: { teamName } });
-    if (!team) 
-        return res.status(401).json({ success: false, message: "Tim tidak ditemukan" });
+    // Jika tidak ada di Team, cek di tabel Admin
+    if (!user) {
+      user = await prisma.admin.findUnique({ where: { username: teamName } });
+      role = 'ADMIN';
+    }
 
-    const isMatch = await bcrypt.compare(password, team.password);
+    // Jika tetap tidak ada
+    if (!user) 
+      return res.status(401).json({ success: false, message: "Akun tidak ditemukan" });
+    
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) 
-        return res.status(401).json({ success: false, message: "Password salah" });
+      return res.status(401).json({ success: false, message: "Password salah" });
+    
 
-    const token = jwt.sign({ id: team.id, teamName: team.teamName }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ 
+      id: user.id, 
+      name: role === 'ADMIN' ? user.username : user.teamName, 
+      role
+    }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.status(200).json({
       success: true,
-      message: "Login berhasil",
-      accessToken: token
+      message: `Login berhasil sebagai ${role}`,
+      accessToken: token,
     });
 
   } catch (error) {

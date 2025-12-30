@@ -51,3 +51,11 @@ model Leader {
   teamId         Int      @unique
   team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
+
+model Admin {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  password   String
+  isBinusian Boolean
+  createdAt  DateTime @default(now())
+}
