@@ -1,5 +1,12 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+const uploadFolder = 'uploads/';
+if (!fs.existsSync(uploadFolder)) {
+    fs.mkdirSync(uploadFolder, { recursive: true });
+    console.log(`Folder '${uploadFolder}' berhasil dibuat!`);
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
