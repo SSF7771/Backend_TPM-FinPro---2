@@ -10,6 +10,18 @@ const userRegister = async (req, res, next) => {
       lineId, githubId, birthPlace, birthDate 
     } = req.body;
 
+    // cek apakah nama tim sudah terdaftar sebelumnya
+    const existingTeam = await prisma.team.findUnique({
+      where: { teamName: teamName }
+    });
+
+    if (existingTeam) {
+      return res.status(400).json({
+        success: false,
+        message: "Nama tim sudah terdaftar! Silakan gunakan nama lain."
+      });
+    }
+
     let hasUpperCase = false;
     let hasLowerCase = false;
     let hasNumber = false;
@@ -39,6 +51,12 @@ const userRegister = async (req, res, next) => {
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
+    const month = today.getMonth() - birth.getMonth();
+    
+    if (month < 0 || month === 0 && today.getDate() < birth.getDate()) {
+      age--;
+    }
+    
     if (age < 17) 
       return res.status(400).json({ success: false, message: "Umur peserta minimal 17 tahun" });
 
