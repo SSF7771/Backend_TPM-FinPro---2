@@ -10,10 +10,38 @@ const userRegister = async (req, res, next) => {
       lineId, githubId, birthPlace, birthDate 
     } = req.body;
 
-    // Validasi Password
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) 
-      return res.status(400).json({ success: false, message: "Password tidak sesuai kriteria (Min 8 karakter, Huruf Besar, Kecil, Angka, Simbol)" });
+    // cek apakah nama tim sudah terdaftar sebelumnya
+    const existingTeam = await prisma.team.findUnique({
+      where: { teamName: teamName }
+    });
+
+    if (existingTeam) {
+      return res.status(400).json({
+        success: false,
+        message: "Nama tim sudah terdaftar! Silakan gunakan nama lain."
+      });
+    }
+
+    let hasUpperCase = false;
+    let hasLowerCase = false;
+    let hasNumber = false;
+    let hasSymbol = false;
+
+    const allowedSymbols = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
+
+    for (let char of password) {
+        if (char >= 'A' && char <= 'Z') hasUpperCase = true;
+        else if (char >= 'a' && char <= 'z') hasLowerCase = true;
+        else if (char >= '0' && char <= '9') hasNumber = true;
+        else if (allowedSymbols.includes(char)) hasSymbol = true;
+    }
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSymbol) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Password harus mengandung satu huruf besar, satu huruf kecil, satu angka, dan satu simbol.'
+        });
+    }
     
     if (password !== confirmPassword) 
       return res.status(400).json({ success: false, message: "Konfirmasi password tidak cocok" });
@@ -23,6 +51,12 @@ const userRegister = async (req, res, next) => {
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
+    const month = today.getMonth() - birth.getMonth();
+    
+    if (month < 0 || month === 0 && today.getDate() < birth.getDate()) {
+      age--;
+    }
+    
     if (age < 17) 
       return res.status(400).json({ success: false, message: "Umur peserta minimal 17 tahun" });
 

@@ -1,13 +1,21 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const sendContactEmail = async (data) => {
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
+      pass: process.env.EMAIL_PASS,
+    },
   });
+
+  // console.log("Mengirim email menggunakan:", process.env.EMAIL_USER);
 
   await transporter.sendMail({
     from: `"${data.name}" <${data.email}>`,
@@ -15,10 +23,10 @@ const sendContactEmail = async (data) => {
     subject: `[HACKATHON 2026] ${data.subject}`,
     html: `<h3>Pesan Baru dari Form Contact Us</h3>
            <p><b>Dari:</b> ${data.name} (${data.email})</p>
-           <p><b>Isi Pesan:</b><br/>${data.message}</p>`
+           <p><b>Isi Pesan:</b><br/>${data.message}</p>`,
   });
 };
 
-module.exports = { 
-    sendContactEmail 
+module.exports = {
+  sendContactEmail,
 };
