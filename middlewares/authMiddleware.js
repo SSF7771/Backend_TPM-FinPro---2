@@ -10,7 +10,7 @@ const verifyAdmin = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.team.findUnique({ where: { id: decoded.id } });
 
-    if (!user || user.role !== 'ADMIN') 
+    if (!user || decoded.role !== 'ADMIN') 
       return res.status(403).json({ success: false, message: "Akses ditolak! Anda bukan admin.." });
     
     req.user = user;
