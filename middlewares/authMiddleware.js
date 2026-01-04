@@ -10,6 +10,9 @@ const verifyUser = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.team.findUnique({ where: { id: decoded.id } });
     
+    if (!user || decoded.role !== 'USER') 
+      return res.status(403).json({ success: false, message: "Akses ditolak! Anda bukan anggota tim." });
+    
     req.user = user;
     next();
     
