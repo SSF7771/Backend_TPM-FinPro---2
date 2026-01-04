@@ -13,6 +13,9 @@ const verifyUser = async (req, res, next) => {
     if (!user || user.role !== 'USER') 
       return res.status(403).json({ success: false, message: "Akses ditolak! Anda bukan anggota tim." });
     
+    if (!user || decoded.role !== 'USER') 
+      return res.status(403).json({ success: false, message: "Akses ditolak! Anda bukan anggota tim." });
+    
     req.user = user;
     next();
     
