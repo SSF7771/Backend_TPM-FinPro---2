@@ -10,6 +10,16 @@ const userRegister = async (req, res, next) => {
       lineId, githubId, birthPlace, birthDate 
     } = req.body;
 
+    // validasi apakah semua field sudah diisi
+    if (!fullName || !email || !whatsappNumber || !lineId || !githubId || !birthPlace || !birthDate) {
+      return res.status(400).json({ success: false, message: "Data yang Anda cantumkan belum lengkap! Mohon periksa nama lengkap, email, nomor WhatsApp, LINE ID, GitHub ID, dan tempat lahir Anda!" });
+    }
+
+    // validasi apakah format email valid
+    if (!email.includes("@gmail.com")) {
+      return res.status(400).json({ success: false, message: "Format email tidak valid! Mohon gunakan email berakhiran '@gmail.com'" });
+    }
+
     // cek apakah nama tim sudah terdaftar sebelumnya
     const existingTeam = await prisma.team.findUnique({
       where: { teamName: teamName }
@@ -45,7 +55,6 @@ const userRegister = async (req, res, next) => {
     
     if (password !== confirmPassword) 
       return res.status(400).json({ success: false, message: "Konfirmasi password tidak cocok" });
-    
 
     // Validasi Umur Minimal 17 Tahun
     const today = new Date();
